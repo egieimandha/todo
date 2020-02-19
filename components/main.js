@@ -84,6 +84,7 @@ export const RenderModal = ({
   addToDo,
   editToDo,
   selectedId,
+  errorMessage,
 }) => {
   if (visibleModal) {
     return (
@@ -107,6 +108,11 @@ export const RenderModal = ({
               value={valueText}
               placeholder={'Type here'}
             />
+            <Item small>
+              <RenderIf condition={errorMessage}>
+                <Text style={styles.errorMessageText}>{errorMessage}</Text>
+              </RenderIf>
+            </Item>
           </Item>
           <Item plain style={styles.containerBtnModal}>
             <Item small row spaceBetween>
@@ -170,7 +176,9 @@ export const RenderModalLogin = ({
           <Item center width={'95%'}>
             <TextInput
               style={styles.textInputContainer}
-              onChangeText={text => setUserName(text)}
+              onChangeText={text =>
+                setUserName(text.trim().toLocaleLowerCase())
+              }
               value={userName}
               placeholder={'Type username here'}
             />
@@ -284,7 +292,7 @@ const styles = StyleSheet.create({
     height: 32,
   },
   backRightBtnLeft: {
-    backgroundColor: 'blue',
+    backgroundColor: '#3bb79f',
     right: 75,
   },
   backRightBtnRight: {

@@ -71,15 +71,18 @@ function App(props) {
   useEffect(() => {
     if (!visibleModal) {
       setValueText('');
+      setErrorMessage('');
     }
   }, [visibleModal]);
 
   const addToDo = () => {
-    setVisibleModal(false);
-    todoStore.addItem({
-      text: valueText,
-      isComplete: false,
-    });
+    if (validateTextInput(valueText)) {
+      setVisibleModal(false);
+      todoStore.addItem({
+        text: valueText,
+        isComplete: false,
+      });
+    }
   };
 
   const editToDo = () => {
@@ -116,15 +119,15 @@ function App(props) {
     }
   };
 
-  const validateUserName = () => {
+  const validateTextInput = textInput => {
     if (!isConnected) {
       setErrorMessage('Please check your connection');
       return false;
-    } else if (!userName) {
-      setErrorMessage('Please insert username');
+    } else if (!textInput) {
+      setErrorMessage('Please insert');
       return false;
-    } else if (userName.length < 3) {
-      setErrorMessage('Username must be 3 or more characters');
+    } else if (textInput.length < 3) {
+      setErrorMessage('Must be 3 or more characters');
       return false;
     } else {
       return true;
@@ -134,7 +137,7 @@ function App(props) {
   const loginHandler = async () => {
     setErrorMessage('');
     setLoadingLogin(true);
-    if (validateUserName()) {
+    if (validateTextInput(userName)) {
       await userStore.editSingle({
         id: userName,
       });
@@ -249,6 +252,7 @@ function App(props) {
         addToDo={addToDo}
         editToDo={editToDo}
         selectedId={selectedId}
+        errorMessage={errorMessage}
       />
       <RenderModalLogin
         visibleModalLogin={visibleModalLogin}

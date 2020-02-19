@@ -16,12 +16,15 @@ import {Section, Item, RenderIf} from './components';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FlashMessage, {showMessage} from 'react-native-flash-message';
 import todoStore from './store/todos';
 import userStore from './store/user';
+import dayjs from 'dayjs';
+import 'dayjs/locale/id';
+dayjs.locale('id');
 
 const RenderToDoList = ({todo, editSection, deleteSection, completeTodo}) => {
-  console.log('MASUPP', todo);
   if (todo && todo.length > 0) {
     return (
       <SwipeListView
@@ -212,7 +215,7 @@ const RenderIconSync = ({isConnected, data}) => {
       return <Icon name={'sync'} size={26} color="#3bb79f" />;
     }
   } else {
-    return <Icon name={'sync-off'} size={26} color="#3bb79f" />;
+    return <Icon name={'sync-off'} size={26} color="red" />;
   }
 };
 
@@ -223,6 +226,7 @@ function App(props) {
   const [visibleModalLogin, setVisibleModalLogin] = useState(false);
   const [loadingLogin, setLoadingLogin] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [loadingSync, setLoadingSync] = useState(false);
   const [userName, setUserName] = useState('');
   const [valueText, setValueText] = useState('');
   const [selectedId, setSelectedId] = useState('');
@@ -337,6 +341,15 @@ function App(props) {
     }
   };
 
+  const logoutHandler = async () => {
+    setIsInitialized(false);
+    setUserName('');
+    await todoStore.deinitialize();
+    await userStore.deleteSingle();
+    AsyncStorage.setItem('userName', '');
+    setVisibleModalLogin(true);
+  };
+
   const showBottomMessage = message => {
     showMessage({
       message: message,
@@ -353,11 +366,14 @@ function App(props) {
       <Section>
         <StatusBar barStyle="dark-content" />
         <SafeAreaView>
-          <RenderIf condition={todoStore.isInitialized}>
+          <RenderIf condition={isInitialized}>
             <Item center>
-              <View style={styles.body}>
-                <Text>{`Hi, ${userName}`}</Text>
-              </View>
+              <Text>{`Hi, ${userName}`}</Text>
+              <Item small>
+                <Text>{`last update: ${dayjs(
+                  todoStore.dataMeta.tsUpload,
+                ).format('DD MMM YYYY HH:mm:ss')}`}</Text>
+              </Item>
             </Item>
             <RenderIf condition={isInitialized}>
               <RenderToDoList
@@ -385,19 +401,31 @@ function App(props) {
           <Icon name={'plus-circle'} size={44} color="#3bb79f" />
         </TouchableOpacity>
       </Item>
+      <Item plain style={styles.btnLogoutPosition}>
+        <TouchableOpacity onPress={() => logoutHandler()}>
+          <SimpleLineIcons name={'logout'} size={20} color="#3bb79f" />
+        </TouchableOpacity>
+      </Item>
       <Item plain style={styles.btnUploadPosition}>
         <TouchableOpacity
-          onPress={() => {
+          onPress={async () => {
             if (isConnected) {
-              todoStore.upload();
+              setLoadingSync(true);
+              await todoStore.upload();
+              setLoadingSync(false);
             } else {
               showBottomMessage('Your connection is offline');
             }
           }}>
-          <RenderIconSync
-            isConnected={isConnected}
-            data={todoStore.countUnuploadeds()}
-          />
+          <RenderIf condition={!loadingSync}>
+            <RenderIconSync
+              isConnected={isConnected}
+              data={todoStore.countUnuploadeds()}
+            />
+          </RenderIf>
+          <RenderIf condition={loadingSync}>
+            <ActivityIndicator size="small" color="#3bb79f" />
+          </RenderIf>
         </TouchableOpacity>
       </Item>
       <RenderModal
@@ -437,6 +465,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 20,
+  },
+  btnLogoutPosition: {
+    position: 'absolute',
+    top: 16,
+    left: 20,
   },
   containerModal: {
     height: 172,

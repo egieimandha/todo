@@ -9,12 +9,14 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-community/async-storage';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {Section, Item, RenderIf} from './components';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import FlashMessage, {showMessage} from 'react-native-flash-message';
 import todoStore from './store/todos';
 import userStore from './store/user';
 
@@ -131,6 +133,7 @@ const RenderModalLogin = ({
   setUserName,
   loadingLogin,
   loginHandler,
+  errorMessage,
 }) => {
   return (
     <Modal
@@ -153,6 +156,11 @@ const RenderModalLogin = ({
             value={userName}
             placeholder={'Type username here'}
           />
+          <Item small>
+            <RenderIf condition={errorMessage}>
+              <Text style={styles.errorMessageText}>{errorMessage}</Text>
+            </RenderIf>
+          </Item>
         </Item>
         <Item plain style={styles.containerBtnModalLogin}>
           <RenderIf condition={!loadingLogin}>
@@ -179,12 +187,17 @@ function App(props) {
   const [visibleModal, setVisibleModal] = useState(false);
   const [visibleModalLogin, setVisibleModalLogin] = useState(false);
   const [loadingLogin, setLoadingLogin] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const [userName, setUserName] = useState('');
   const [valueText, setValueText] = useState('');
   const [selectedId, setSelectedId] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     async function initFirst() {
+      NetInfo.addEventListener(state => {
+        setIsConnected(state.isConnected);
+      });
       if (!userStore.isInitialized) {
         const userNameStorage = await AsyncStorage.getItem('userName');
         if (userNameStorage) {
@@ -249,22 +262,50 @@ function App(props) {
     }
   };
 
+  const validateUserName = () => {
+    if (!userName) {
+      setErrorMessage('Please insert username');
+      return false;
+    } else if (userName.length < 3) {
+      setErrorMessage('Username must be 3 or more characters');
+      return false;
+    } else {
+      return true;
+    }
+  };
+
   const loginHandler = async () => {
+    setErrorMessage('');
     setLoadingLogin(true);
-    await userStore.editSingle({
-      id: userName,
+    if (validateUserName()) {
+      await userStore.editSingle({
+        id: userName,
+      });
+      await todoStore.setName(userName);
+      await todoStore.initialize();
+      await AsyncStorage.setItem('userName', userName);
+      setIsInitialized(true);
+      todoStore.subscribe(forceUpdate);
+      setVisibleModalLogin(false);
+      setLoadingLogin(false);
+    } else {
+      setLoadingLogin(false);
+    }
+  };
+
+  const showBottomMessage = message => {
+    showMessage({
+      message: message,
+      duration: 10000,
+      type: 'default',
+      backgroundColor: 'rgba(51, 51, 51, 0.75)',
+      color: '#FFF',
     });
-    await todoStore.setName(userName);
-    await todoStore.initialize();
-    await AsyncStorage.setItem('userName', userName);
-    setIsInitialized(true);
-    todoStore.subscribe(forceUpdate);
-    setLoadingLogin(false);
-    setVisibleModalLogin(false);
   };
 
   return (
     <>
+      <FlashMessage position="bottom" />
       <Section>
         <StatusBar barStyle="dark-content" />
         <SafeAreaView>
@@ -300,8 +341,19 @@ function App(props) {
         </TouchableOpacity>
       </Item>
       <Item plain style={styles.btnUploadPosition}>
-        <TouchableOpacity onPress={() => todoStore.upload()}>
-          <Icon name={'upload'} size={28} color="#0000ff" />
+        <TouchableOpacity
+          onPress={() => {
+            if (isConnected) {
+              todoStore.upload();
+            } else {
+              showBottomMessage('Your connection is offline');
+            }
+          }}>
+          <Icon
+            name={'upload'}
+            size={28}
+            color={isConnected ? '#0000ff' : 'grey'}
+          />
         </TouchableOpacity>
       </Item>
       <RenderModal
@@ -319,6 +371,7 @@ function App(props) {
         setUserName={setUserName}
         loadingLogin={loadingLogin}
         loginHandler={loginHandler}
+        errorMessage={errorMessage}
       />
     </>
   );
@@ -392,6 +445,10 @@ const styles = StyleSheet.create({
   },
   backTextWhite: {
     color: '#FFF',
+  },
+  errorMessageText: {
+    color: 'red',
+    fontSize: 12,
   },
 });
 

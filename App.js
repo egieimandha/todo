@@ -7,13 +7,16 @@ import {
   Text,
   StatusBar,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
-import todoStore from './store/todos';
+import AsyncStorage from '@react-native-community/async-storage';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {Section, Item, RenderIf} from './components';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import todoStore from './store/todos';
+import userStore from './store/user';
 
 const RenderToDoList = ({todo, editSection, deleteSection}) => {
   if (todo && todo.length > 0) {
@@ -54,16 +57,37 @@ const RenderToDoList = ({todo, editSection, deleteSection}) => {
   }
 };
 
-const RenderModal = ({visibleModal, setVisibleModal}) => {
+const RenderModal = ({
+  visibleModal,
+  setVisibleModal,
+  valueText,
+  setValueText,
+  addToDo,
+  editToDo,
+  selectedId,
+}) => {
   if (visibleModal) {
     return (
-      <Modal isVisible={visibleModal} containerStyle={styles.containerModal}>
+      <Modal
+        animationIn="slideInDown"
+        animationOut="slideOutUp"
+        useNativeDriver={true}
+        isVisible={visibleModal}
+        containerStyle={styles.containerModal}>
         <Item
           center
           backgroundColor={Colors.lighter}
           style={styles.containerModal}>
           <Item plain style={styles.titleModal}>
             <Text>What you gonna do?</Text>
+          </Item>
+          <Item center width={'95%'}>
+            <TextInput
+              style={styles.textInputContainer}
+              onChangeText={text => setValueText(text)}
+              value={valueText}
+              placeholder={'Type here'}
+            />
           </Item>
           <Item plain style={styles.containerBtnModal}>
             <Item small row spaceBetween>
@@ -76,7 +100,13 @@ const RenderModal = ({visibleModal, setVisibleModal}) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.btnModal}
-                onPress={() => setVisibleModal(false)}>
+                onPress={() => {
+                  if (selectedId) {
+                    editToDo();
+                  } else {
+                    addToDo();
+                  }
+                }}>
                 <Item
                   small
                   center
@@ -95,15 +125,83 @@ const RenderModal = ({visibleModal, setVisibleModal}) => {
   }
 };
 
+const RenderModalLogin = ({
+  visibleModalLogin,
+  userName,
+  setUserName,
+  loadingLogin,
+  loginHandler,
+}) => {
+  return (
+    <Modal
+      animationIn="slideInDown"
+      animationOut="slideOutUp"
+      useNativeDriver={true}
+      isVisible={visibleModalLogin}
+      containerStyle={styles.containerModal}>
+      <Item
+        center
+        backgroundColor={Colors.lighter}
+        style={styles.containerModal}>
+        <Item plain style={styles.titleModal}>
+          <Text>Who are you?</Text>
+        </Item>
+        <Item center width={'95%'}>
+          <TextInput
+            style={styles.textInputContainer}
+            onChangeText={text => setUserName(text)}
+            value={userName}
+            placeholder={'Type username here'}
+          />
+        </Item>
+        <Item plain style={styles.containerBtnModalLogin}>
+          <RenderIf condition={!loadingLogin}>
+            <TouchableOpacity onPress={() => loginHandler()}>
+              <Item small center backgroundColor={'#0000ff'} borderRadius={16}>
+                <Text style={styles.backTextWhite}>Ok</Text>
+              </Item>
+            </TouchableOpacity>
+          </RenderIf>
+          <RenderIf condition={loadingLogin}>
+            <Item small center backgroundColor={'#0000ff'} borderRadius={16}>
+              <ActivityIndicator size="small" color="#FFF" />
+            </Item>
+          </RenderIf>
+        </Item>
+      </Item>
+    </Modal>
+  );
+};
+
 function App(props) {
+  const [, forceUpdate] = useState();
   const [isInitialized, setIsInitialized] = useState(false);
   const [visibleModal, setVisibleModal] = useState(false);
-  const [, forceUpdate] = useState();
+  const [visibleModalLogin, setVisibleModalLogin] = useState(false);
+  const [loadingLogin, setLoadingLogin] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [valueText, setValueText] = useState('');
+  const [selectedId, setSelectedId] = useState('');
 
   useEffect(() => {
     async function initFirst() {
-      if (!todoStore.isInitialized) {
-        todoStore.setName('test');
+      if (!userStore.isInitialized) {
+        const userNameStorage = await AsyncStorage.getItem('userName');
+        if (userNameStorage) {
+          setVisibleModalLogin(false);
+          setUserName(userNameStorage);
+          await todoStore.setName(userNameStorage);
+          await todoStore.initialize();
+          setIsInitialized(true);
+          todoStore.subscribe(forceUpdate);
+        } else {
+          setVisibleModalLogin(true);
+          await userStore.initialize();
+          userStore.subscribe(forceUpdate);
+        }
+      } else {
+        setUserName(userStore.data.id);
+        await todoStore.setName(userStore.data.id);
         await todoStore.initialize();
         setIsInitialized(true);
         todoStore.subscribe(forceUpdate);
@@ -112,13 +210,36 @@ function App(props) {
     initFirst();
   }, []);
 
+  useEffect(() => {
+    if (!visibleModal) {
+      setValueText('');
+    }
+  }, [visibleModal]);
+
+  const addToDo = () => {
+    setVisibleModal(false);
+    todoStore.addItem({
+      text: valueText,
+    });
+  };
+
+  const editToDo = () => {
+    setVisibleModal(false);
+    todoStore.editItem(selectedId, {
+      text: valueText,
+    });
+    setSelectedId('');
+  };
+
   const editSection = (rowMap, id) => {
+    setSelectedId(id);
+    setValueText(rowMap[id].props.item.text);
     setVisibleModal(true);
     closeRow(rowMap, id);
   };
 
   const deleteSection = (rowMap, id) => {
-    todoStore.deleteItem(id, todoStore.deleteItem);
+    todoStore.deleteItem(id);
     closeRow(rowMap, id);
   };
 
@@ -128,24 +249,45 @@ function App(props) {
     }
   };
 
+  const loginHandler = async () => {
+    setLoadingLogin(true);
+    await userStore.editSingle({
+      id: userName,
+    });
+    await todoStore.setName(userName);
+    await todoStore.initialize();
+    await AsyncStorage.setItem('userName', userName);
+    setIsInitialized(true);
+    todoStore.subscribe(forceUpdate);
+    setLoadingLogin(false);
+    setVisibleModalLogin(false);
+  };
+
   return (
     <>
       <Section>
         <StatusBar barStyle="dark-content" />
         <SafeAreaView>
-          <Item center>
-            <View style={styles.body}>
-              <Text>todos_test</Text>
-            </View>
-          </Item>
-          <RenderIf condition={isInitialized}>
-            <RenderToDoList
-              todo={todoStore.data}
-              editSection={editSection}
-              deleteSection={deleteSection}
-            />
+          <RenderIf condition={todoStore.isInitialized}>
+            <Item center>
+              <View style={styles.body}>
+                <Text>{`Hi, ${userName}`}</Text>
+              </View>
+            </Item>
+            <RenderIf condition={isInitialized}>
+              <RenderToDoList
+                todo={todoStore.data}
+                editSection={editSection}
+                deleteSection={deleteSection}
+              />
+            </RenderIf>
+            <RenderIf condition={!isInitialized}>
+              <Item center>
+                <ActivityIndicator size="large" color="#0000ff" />
+              </Item>
+            </RenderIf>
           </RenderIf>
-          <RenderIf condition={!isInitialized}>
+          <RenderIf condition={!isInitialized && !visibleModalLogin}>
             <Item center>
               <ActivityIndicator size="large" color="#0000ff" />
             </Item>
@@ -165,12 +307,30 @@ function App(props) {
       <RenderModal
         visibleModal={visibleModal}
         setVisibleModal={setVisibleModal}
+        valueText={valueText}
+        setValueText={setValueText}
+        addToDo={addToDo}
+        editToDo={editToDo}
+        selectedId={selectedId}
+      />
+      <RenderModalLogin
+        visibleModalLogin={visibleModalLogin}
+        userName={userName}
+        setUserName={setUserName}
+        loadingLogin={loadingLogin}
+        loginHandler={loginHandler}
       />
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  textInputContainer: {
+    width: '80%',
+    borderBottomWidth: 1,
+    borderBottomColor: '#0000ff',
+    paddingBottom: 0,
+  },
   btnAddPosition: {
     position: 'absolute',
     bottom: 20,
@@ -182,8 +342,13 @@ const styles = StyleSheet.create({
     right: 20,
   },
   containerModal: {
-    height: 200,
+    height: 172,
     borderRadius: 12,
+  },
+  containerBtnModalLogin: {
+    position: 'absolute',
+    bottom: 20,
+    width: '32%',
   },
   containerBtnModal: {
     position: 'absolute',

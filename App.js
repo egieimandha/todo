@@ -137,6 +137,7 @@ function App(props) {
       });
       await todoStore.setName(userName);
       await todoStore.initialize();
+      await todoStore.upload();
       await AsyncStorage.setItem('userName', userName);
       setIsInitialized(true);
       todoStore.subscribe(forceUpdate);

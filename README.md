@@ -1,6 +1,15 @@
 #  todo list with [pouchy-store](https://github.com/eFishery/pouchy-store)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](http://standardjs.com/)
 
+### Desc
+
+- this is todo app list using [pouchy-store](https://github.com/eFishery/pouchy-store)
+- before add task you must add a username then you can use the app
+- you can add a new list using plus button
+- you can mark task is done with click a task
+- you can edit and delete the tash with swipe on a task
+- you can sync with cloud using icon top right corner
+
 ## :arrow_up: How to Setup
 
 **Step 1:** git clone this repo:

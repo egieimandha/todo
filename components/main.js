@@ -177,7 +177,12 @@ export const RenderModalLogin = ({
             <TextInput
               style={styles.textInputContainer}
               onChangeText={text =>
-                setUserName(text.trim().toLocaleLowerCase())
+                setUserName(
+                  text
+                    .trim()
+                    .toLocaleLowerCase()
+                    .replace(/\W/g, ''),
+                )
               }
               value={userName}
               placeholder={'Type username here'}

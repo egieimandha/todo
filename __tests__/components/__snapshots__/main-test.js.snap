@@ -51,72 +51,153 @@ exports[`Components Main Render Icon Check should be rendered icon not check whe
 `;
 
 exports[`Components Main Render Icon Sync should be rendered icon cannot sync when do not have connection internet 1`] = `
-<Text
-  allowFontScaling={false}
+<View
   style={
     Array [
       Object {
-        "color": "red",
-        "fontSize": 26,
+        "backgroundColor": "transparent",
+        "paddingVertical": 10,
       },
       undefined,
       Object {
-        "fontFamily": "Material Design Icons",
-        "fontStyle": "normal",
-        "fontWeight": "normal",
+        "flexDirection": "row",
+        "paddingHorizontal": 0,
+        "paddingVertical": 0,
       },
-      Object {},
     ]
   }
 >
-  
-</Text>
+  <Text
+    allowFontScaling={false}
+    style={
+      Array [
+        Object {
+          "color": "red",
+          "fontSize": 22,
+        },
+        undefined,
+        Object {
+          "fontFamily": "Material Design Icons",
+          "fontStyle": "normal",
+          "fontWeight": "normal",
+        },
+        Object {},
+      ]
+    }
+  >
+    
+  </Text>
+  <Text
+    style={
+      Object {
+        "color": "#3bb79f",
+        "fontSize": 16,
+      }
+    }
+  >
+    Offline
+  </Text>
+</View>
 `;
 
 exports[`Components Main Render Icon Sync should be rendered icon sync when have connection internet 1`] = `
-<Text
-  allowFontScaling={false}
+<View
   style={
     Array [
       Object {
-        "color": "#3bb79f",
-        "fontSize": 26,
+        "backgroundColor": "transparent",
+        "paddingVertical": 10,
       },
       undefined,
       Object {
-        "fontFamily": "Material Design Icons",
-        "fontStyle": "normal",
-        "fontWeight": "normal",
+        "flexDirection": "row",
+        "paddingHorizontal": 0,
+        "paddingVertical": 0,
       },
-      Object {},
     ]
   }
 >
-  
-</Text>
+  <Text
+    allowFontScaling={false}
+    style={
+      Array [
+        Object {
+          "color": "#3bb79f",
+          "fontSize": 22,
+        },
+        undefined,
+        Object {
+          "fontFamily": "Material Design Icons",
+          "fontStyle": "normal",
+          "fontWeight": "normal",
+        },
+        Object {},
+      ]
+    }
+  >
+    
+  </Text>
+  <Text
+    style={
+      Object {
+        "color": "#3bb79f",
+        "fontSize": 16,
+      }
+    }
+  >
+    Synced
+  </Text>
+</View>
 `;
 
 exports[`Components Main Render Icon Sync should be rendered icon sync with some new when new data changed 1`] = `
-<Text
-  allowFontScaling={false}
+<View
   style={
     Array [
       Object {
-        "color": "#3bb79f",
-        "fontSize": 26,
+        "backgroundColor": "transparent",
+        "paddingVertical": 10,
       },
       undefined,
       Object {
-        "fontFamily": "Material Design Icons",
-        "fontStyle": "normal",
-        "fontWeight": "normal",
+        "flexDirection": "row",
+        "paddingHorizontal": 0,
+        "paddingVertical": 0,
       },
-      Object {},
     ]
   }
 >
-  
-</Text>
+  <Text
+    allowFontScaling={false}
+    style={
+      Array [
+        Object {
+          "color": "#3bb79f",
+          "fontSize": 22,
+        },
+        undefined,
+        Object {
+          "fontFamily": "Material Design Icons",
+          "fontStyle": "normal",
+          "fontWeight": "normal",
+        },
+        Object {},
+      ]
+    }
+  >
+    
+  </Text>
+  <Text
+    style={
+      Object {
+        "color": "#3bb79f",
+        "fontSize": 16,
+      }
+    }
+  >
+    Sync Now
+  </Text>
+</View>
 `;
 
 exports[`Components Main Render Modal Login should be not rendered when visible false 1`] = `null`;
@@ -731,6 +812,7 @@ exports[`Components Main RenderToDoList should be rendered when have todo and to
                 "flex": 1,
                 "flexDirection": "row",
                 "justifyContent": "space-between",
+                "marginVertical": 8,
                 "paddingLeft": 15,
               }
             }
@@ -859,11 +941,12 @@ exports[`Components Main RenderToDoList should be rendered when have todo and to
             <View
               style={
                 Object {
-                  "backgroundColor": "#F3F3F3",
-                  "borderBottomColor": "black",
+                  "backgroundColor": "#fafafa",
+                  "borderBottomColor": "#ededed",
                   "borderBottomWidth": 1,
                   "height": 32,
                   "justifyContent": "center",
+                  "marginVertical": 8,
                   "paddingHorizontal": 8,
                 }
               }
@@ -967,6 +1050,7 @@ exports[`Components Main RenderToDoList should be rendered when have todo and to
                 "flex": 1,
                 "flexDirection": "row",
                 "justifyContent": "space-between",
+                "marginVertical": 8,
                 "paddingLeft": 15,
               }
             }
@@ -1095,11 +1179,12 @@ exports[`Components Main RenderToDoList should be rendered when have todo and to
             <View
               style={
                 Object {
-                  "backgroundColor": "#F3F3F3",
-                  "borderBottomColor": "black",
+                  "backgroundColor": "#fafafa",
+                  "borderBottomColor": "#ededed",
                   "borderBottomWidth": 1,
                   "height": 32,
                   "justifyContent": "center",
+                  "marginVertical": 8,
                   "paddingHorizontal": 8,
                 }
               }

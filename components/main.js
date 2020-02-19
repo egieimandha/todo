@@ -209,12 +209,27 @@ export const RenderModalLogin = ({
 export const RenderIconSync = ({isConnected, data}) => {
   if (isConnected) {
     if (data) {
-      return <Icon name={'sync-alert'} size={26} color="#3bb79f" />;
+      return (
+        <Item plain row>
+          <Icon name={'sync-alert'} size={22} color="#3bb79f" />
+          <Text style={styles.syncText}>Sync Now</Text>
+        </Item>
+      );
     } else {
-      return <Icon name={'sync'} size={26} color="#3bb79f" />;
+      return (
+        <Item plain row>
+          <Icon name={'sync'} size={22} color="#3bb79f" />
+          <Text style={styles.syncText}>Synced</Text>
+        </Item>
+      );
     }
   } else {
-    return <Icon name={'sync-off'} size={26} color="red" />;
+    return (
+      <Item plain row>
+        <Icon name={'sync-off'} size={22} color="red" />
+        <Text style={styles.syncText}>Offline</Text>
+      </Item>
+    );
   }
 };
 
@@ -242,14 +257,16 @@ const styles = StyleSheet.create({
     width: '40%',
   },
   rowFront: {
+    marginVertical: 8,
     paddingHorizontal: 8,
-    backgroundColor: '#F3F3F3',
-    borderBottomColor: 'black',
+    backgroundColor: '#fafafa',
+    borderBottomColor: '#ededed',
     borderBottomWidth: 1,
     justifyContent: 'center',
     height: 32,
   },
   rowBack: {
+    marginVertical: 8,
     alignItems: 'center',
     backgroundColor: '#F8F8F8',
     flex: 1,
@@ -283,5 +300,9 @@ const styles = StyleSheet.create({
   },
   checkIcon: {
     marginRight: 4,
+  },
+  syncText: {
+    fontSize: 16,
+    color: '#3bb79f',
   },
 });

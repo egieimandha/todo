@@ -117,7 +117,10 @@ function App(props) {
   };
 
   const validateUserName = () => {
-    if (!userName) {
+    if (!isConnected) {
+      setErrorMessage('Please check your connection');
+      return false;
+    } else if (!userName) {
       setErrorMessage('Please insert username');
       return false;
     } else if (userName.length < 3) {
@@ -168,41 +171,43 @@ function App(props) {
   };
 
   return (
-    <>
+    <Item plain backgroundColor={'#fafafa'} height={'100%'}>
       <FlashMessage position="bottom" />
-      <Section>
-        <StatusBar barStyle="dark-content" />
-        <SafeAreaView>
-          <RenderIf condition={isInitialized}>
-            <Item center>
-              <Text>{`Hi, ${userName}`}</Text>
-              <Item small>
-                <Text>{`last update: ${dayjs(
-                  todoStore.dataMeta.tsUpload,
-                ).format('DD MMM YYYY HH:mm:ss')}`}</Text>
-              </Item>
-            </Item>
+      <StatusBar barStyle="dark-content" />
+      <SafeAreaView>
+        <RenderIf condition={isInitialized}>
+          <Item header backgroundColor={'#fff'}>
+            <Text style={styles.headerText}>{`Hi, ${userName}`}</Text>
+          </Item>
+          <Item plain>
             <RenderIf condition={isInitialized}>
-              <RenderToDoList
-                todo={todoStore.data}
-                editSection={editSection}
-                deleteSection={deleteSection}
-                completeTodo={completeTodo}
-              />
+              <Section>
+                <Item small>
+                  <Text style={styles.lastUpdateText}>{`last update: ${dayjs(
+                    todoStore.dataMeta.tsUpload,
+                  ).format('DD MMM YYYY HH:mm:ss')}`}</Text>
+                </Item>
+                <RenderToDoList
+                  todo={todoStore.data}
+                  editSection={editSection}
+                  deleteSection={deleteSection}
+                  completeTodo={completeTodo}
+                />
+              </Section>
             </RenderIf>
             <RenderIf condition={!isInitialized}>
               <Item center>
                 <ActivityIndicator size="large" color="#3bb79f" />
               </Item>
             </RenderIf>
-          </RenderIf>
-          <RenderIf condition={!isInitialized && !visibleModalLogin}>
-            <Item center>
-              <ActivityIndicator size="large" color="#3bb79f" />
-            </Item>
-          </RenderIf>
-        </SafeAreaView>
-      </Section>
+          </Item>
+        </RenderIf>
+        <RenderIf condition={!isInitialized && !visibleModalLogin}>
+          <Item center>
+            <ActivityIndicator size="large" color="#3bb79f" />
+          </Item>
+        </RenderIf>
+      </SafeAreaView>
       <Item plain style={styles.btnAddPosition}>
         <TouchableOpacity onPress={() => setVisibleModal(true)}>
           <Icon name={'plus-circle'} size={44} color="#3bb79f" />
@@ -215,6 +220,7 @@ function App(props) {
       </Item>
       <Item plain style={styles.btnUploadPosition}>
         <TouchableOpacity
+          style={styles.containerBtnUpload}
           onPress={async () => {
             if (isConnected) {
               setLoadingSync(true);
@@ -252,7 +258,7 @@ function App(props) {
         loginHandler={loginHandler}
         errorMessage={errorMessage}
       />
-    </>
+    </Item>
   );
 }
 
@@ -263,14 +269,29 @@ const styles = StyleSheet.create({
     right: 20,
   },
   btnUploadPosition: {
+    borderWidth: 1,
+    borderColor: '#3bb79f',
+    borderRadius: 8,
     position: 'absolute',
-    top: 16,
+    top: 14,
     right: 20,
   },
   btnLogoutPosition: {
     position: 'absolute',
-    top: 16,
+    top: 20,
     left: 20,
+  },
+  headerText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  lastUpdateText: {
+    fontSize: 10,
+    color: '#606266',
+  },
+  containerBtnUpload: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
 });
 

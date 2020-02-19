@@ -20,7 +20,8 @@ import FlashMessage, {showMessage} from 'react-native-flash-message';
 import todoStore from './store/todos';
 import userStore from './store/user';
 
-const RenderToDoList = ({todo, editSection, deleteSection}) => {
+const RenderToDoList = ({todo, editSection, deleteSection, completeTodo}) => {
+  console.log('MASUPP', todo);
   if (todo && todo.length > 0) {
     return (
       <SwipeListView
@@ -30,9 +31,31 @@ const RenderToDoList = ({todo, editSection, deleteSection}) => {
           return rowData._id;
         }}
         renderItem={(rowData, rowMap) => {
+          const {text, isComplete} = rowData.item;
           return (
             <View style={styles.rowFront}>
-              <Text>{rowData.item.text}</Text>
+              <TouchableOpacity
+                onPress={() => completeTodo(rowData.item, isComplete)}>
+                <Item row plain>
+                  <RenderIf condition={isComplete}>
+                    <Icon
+                      name={'check-circle-outline'}
+                      size={20}
+                      color="#3bb79f"
+                      style={styles.checkIcon}
+                    />
+                  </RenderIf>
+                  <RenderIf condition={!isComplete}>
+                    <Icon
+                      name={'checkbox-blank-circle-outline'}
+                      size={20}
+                      color="#3bb79f"
+                      style={styles.checkIcon}
+                    />
+                  </RenderIf>
+                  <Text>{text}</Text>
+                </Item>
+              </TouchableOpacity>
             </View>
           );
         }}
@@ -112,7 +135,7 @@ const RenderModal = ({
                 <Item
                   small
                   center
-                  backgroundColor={'#0000ff'}
+                  backgroundColor={'#3bb79f'}
                   borderRadius={16}>
                   <Text style={styles.backTextWhite}>Ok</Text>
                 </Item>
@@ -165,13 +188,13 @@ const RenderModalLogin = ({
         <Item plain style={styles.containerBtnModalLogin}>
           <RenderIf condition={!loadingLogin}>
             <TouchableOpacity onPress={() => loginHandler()}>
-              <Item small center backgroundColor={'#0000ff'} borderRadius={16}>
+              <Item small center backgroundColor={'#3bb79f'} borderRadius={16}>
                 <Text style={styles.backTextWhite}>Ok</Text>
               </Item>
             </TouchableOpacity>
           </RenderIf>
           <RenderIf condition={loadingLogin}>
-            <Item small center backgroundColor={'#0000ff'} borderRadius={16}>
+            <Item small center backgroundColor={'#3bb79f'} borderRadius={16}>
               <ActivityIndicator size="small" color="#FFF" />
             </Item>
           </RenderIf>
@@ -179,6 +202,18 @@ const RenderModalLogin = ({
       </Item>
     </Modal>
   );
+};
+
+const RenderIconSync = ({isConnected, data}) => {
+  if (isConnected) {
+    if (data) {
+      return <Icon name={'sync-alert'} size={26} color="#3bb79f" />;
+    } else {
+      return <Icon name={'sync'} size={26} color="#3bb79f" />;
+    }
+  } else {
+    return <Icon name={'sync-off'} size={26} color="#3bb79f" />;
+  }
 };
 
 function App(props) {
@@ -233,6 +268,7 @@ function App(props) {
     setVisibleModal(false);
     todoStore.addItem({
       text: valueText,
+      isComplete: false,
     });
   };
 
@@ -240,8 +276,16 @@ function App(props) {
     setVisibleModal(false);
     todoStore.editItem(selectedId, {
       text: valueText,
+      isComplete: false,
     });
     setSelectedId('');
+  };
+
+  const completeTodo = (rowData, isComplete) => {
+    todoStore.editItem(rowData._id, {
+      text: rowData.text,
+      isComplete: !isComplete,
+    });
   };
 
   const editSection = (rowMap, id) => {
@@ -320,24 +364,25 @@ function App(props) {
                 todo={todoStore.data}
                 editSection={editSection}
                 deleteSection={deleteSection}
+                completeTodo={completeTodo}
               />
             </RenderIf>
             <RenderIf condition={!isInitialized}>
               <Item center>
-                <ActivityIndicator size="large" color="#0000ff" />
+                <ActivityIndicator size="large" color="#3bb79f" />
               </Item>
             </RenderIf>
           </RenderIf>
           <RenderIf condition={!isInitialized && !visibleModalLogin}>
             <Item center>
-              <ActivityIndicator size="large" color="#0000ff" />
+              <ActivityIndicator size="large" color="#3bb79f" />
             </Item>
           </RenderIf>
         </SafeAreaView>
       </Section>
       <Item plain style={styles.btnAddPosition}>
         <TouchableOpacity onPress={() => setVisibleModal(true)}>
-          <Icon name={'plus-circle'} size={44} color="#0000ff" />
+          <Icon name={'plus-circle'} size={44} color="#3bb79f" />
         </TouchableOpacity>
       </Item>
       <Item plain style={styles.btnUploadPosition}>
@@ -349,10 +394,9 @@ function App(props) {
               showBottomMessage('Your connection is offline');
             }
           }}>
-          <Icon
-            name={'upload'}
-            size={28}
-            color={isConnected ? '#0000ff' : 'grey'}
+          <RenderIconSync
+            isConnected={isConnected}
+            data={todoStore.countUnuploadeds()}
           />
         </TouchableOpacity>
       </Item>
@@ -381,7 +425,7 @@ const styles = StyleSheet.create({
   textInputContainer: {
     width: '80%',
     borderBottomWidth: 1,
-    borderBottomColor: '#0000ff',
+    borderBottomColor: '#3bb79f',
     paddingBottom: 0,
   },
   btnAddPosition: {
@@ -449,6 +493,9 @@ const styles = StyleSheet.create({
   errorMessageText: {
     color: 'red',
     fontSize: 12,
+  },
+  checkIcon: {
+    marginRight: 4,
   },
 });
 
